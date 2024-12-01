@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import altair as alt
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def main():
     st.title("CSV Transformer")
@@ -80,12 +81,11 @@ def main():
                 
                 # Display mode for each column with a count of how many unique values per column and how many times the mode value appears
                 mode_counts = df.mode().iloc[0]  # Get the first row of the mode DataFrame
-                unique_counts = df.nunique().reset_index()  # Count unique values for each column and reset index
-                unique_counts.columns = ['Column', 'Unique Values']  # Rename columns for clarity
+                unique_counts = df.nunique()  # Count unique values for each column
                 mode_value_counts = df.apply(lambda col: col.value_counts().max() if col.dtype == 'object' else None)  # Count the maximum occurrences of the mode value for each column
                 
                 st.write("Mode, Unique Value Counts, and Mode Value Counts per Column:")
-                st.write(pd.DataFrame({'Mode': mode_counts, '# of Unique Field Values': unique_counts['Unique Values'], 'Mode Value Counts': mode_value_counts}))
+                st.write(pd.DataFrame({'Mode': mode_counts, '# of Unique Field Values': unique_counts, 'Mode Value Counts': mode_value_counts}))
                 
                 # Output the number of columns and rows in the final transformed data
                 st.write(f"Number of Columns in Transformed Data: {len(df.columns)}")
@@ -95,24 +95,20 @@ def main():
                 st.subheader("Visualizations")
                 
                 # Plotting unique values per column
-                unique_values_chart = alt.Chart(unique_counts, title='Unique Values per Column').mark_bar().encode(
-                    x='Column',
-                    y='Unique Values'
-                ).properties(
-                    width=600,
-                    height=400
-                )
-                st.altair_chart(unique_values_chart)
+                plt.figure(figsize=(10, 6))
+                sns.barplot(x=df.columns, y=unique_counts)
+                plt.title('Unique Values per Column')
+                plt.xlabel('Columns')
+                plt.ylabel('Unique Values')
+                st.pyplot(plt)
                 
                 # Plotting mode value counts per column
-                mode_value_counts_chart = alt.Chart(mode_value_counts.reset_index(), title='Mode Value Counts per Column').mark_bar().encode(
-                    x='index',
-                    y='Mode Value Counts'
-                ).properties(
-                    width=600,
-                    height=400
-                )
-                st.altair_chart(mode_value_counts_chart)
+                plt.figure(figsize=(10, 6))
+                sns.barplot(x=df.columns, y=mode_value_counts)
+                plt.title('Mode Value Counts per Column')
+                plt.xlabel('Columns')
+                plt.ylabel('Mode Value Counts')
+                st.pyplot(plt)
                 
                 # Step 3: Download transformed CSV
                 csv = df.to_csv(index=False)
